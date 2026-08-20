@@ -1,0 +1,531 @@
+{
+  "name": "Order Helper",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        688,
+        -48
+      ],
+      "id": "71d5ee0b-5156-48d0-b666-ec680d9e59b5",
+      "name": "Get Last Order ID",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<YOUR_GOOGLE_CREDENTIAL_ID>",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": []
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -48
+      ],
+      "id": "ec951ab6-cb6c-4ff7-a00c-044a09cdd8ce",
+      "name": "Data from Order Form",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "<YOUR_GOOGLE_CREDENTIAL_ID>",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentYear = new Date().getFullYear();\nconst lastOrderId = $input.first().json.LastOrderID;\n\nconst [lastYear, lastSequence] = lastOrderId.split(\"-\");\n\nconst nextSequence =\n  Number(lastYear) === currentYear\n    ? Number(lastSequence) + 1\n    : 1;\n\nconst newOrderId = `${currentYear}-${String(nextSequence).padStart(5, \"0\")}`;\n\nreturn [\n  {\n    json: {\n      lastOrderId,\n      newOrderId,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -48
+      ],
+      "id": "150f4afe-9efc-4657-b926-9a85ba95ccaf",
+      "name": "Generate new Order ID"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Item name",
+              "lookupValue": "={{ $json['What is the item you would like to order?'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -144,
+        -224
+      ],
+      "id": "7a85bce6-ae72-47c5-81dc-ee98d3c25cd0",
+      "name": "Get Product Price",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<YOUR_GOOGLE_CREDENTIAL_ID>",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "Item name",
+              "field2": "What is the item you would like to order?"
+            }
+          ]
+        },
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        48,
+        -64
+      ],
+      "id": "8f5203aa-42f7-41e2-8940-e5244a44eee2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Merge').item.json.Timestamp }}",
+            "Order ID": "={{ $json.newOrderId }}",
+            "Total": "={{ $('Calculate Total w/ Shipping Fee').item.json.Total }}",
+            "Price": "={{ $('Merge').item.json.Price }}",
+            "Status": "New",
+            "Product": "={{ $('Merge').item.json['Item name'] }}",
+            "Quantity": "={{ $('Merge').item.json.Quantity }}",
+            "Order date": "={{ $('Merge').item.json.Timestamp.split(\" \")[0] }}",
+            "Notes": "={{ $('Merge').item.json.Notes }}",
+            "Shipping Fee": "={{ $('Calculate Total w/ Shipping Fee').item.json['Shipping Fee'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order ID",
+              "displayName": "Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Product",
+              "displayName": "Product",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price",
+              "displayName": "Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Fee",
+              "displayName": "Shipping Fee",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order date",
+              "displayName": "Order date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1088,
+        -48
+      ],
+      "id": "f9ea98ab-8b7c-4f20-89d6-907751399912",
+      "name": "Add to Order Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<YOUR_GOOGLE_CREDENTIAL_ID>",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "<YOUR_DISCORD_SERVER_ID>",
+          "mode": "list"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "<YOUR_DISCORD_CHANNEL_ID>",
+          "mode": "list"
+        },
+        "content": "=# ‼️ NEW ORDER ‼️\n\n```ORDER #: {{ $json['Order ID'] }}\nORDER DATE: {{ $json['Order date'] }}\nCUSTOMER: {{ $('Merge').item.json['Customer Name'] }}\n\nPRODUCT: {{ $('Merge').item.json['Item name'] }}\nQUANTITY: {{ $('Merge').item.json.Quantity }}\nTOTAL AMOUNT (w/SF): PHP {{ $('Calculate Total w/ Shipping Fee').item.json.Total }}```\n**CURRENT STATUS:**\n✅ ADDED TO ORDER SHEET\n⏳ PENDING CUSTOMER PAYMENT",
+        "options": {},
+        "embeds": {
+          "values": []
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        -48
+      ],
+      "id": "5d51451e-7265-4f0d-ad0e-505708d72009",
+      "name": "Send to Discord",
+      "credentials": {
+        "discordBotApi": {
+          "id": "<YOUR_DISCORD_CREDENTIAL_ID>",
+          "name": "Discord API account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "<YOUR_GOOGLE_SHEET_ID>",
+          "mode": "list"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Region",
+              "lookupValue": "={{ $json['Shipping Region'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        32,
+        112
+      ],
+      "id": "27c42838-b02a-46c8-9b25-47051d85eec6",
+      "name": "Get Shipping Fee",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<YOUR_GOOGLE_CREDENTIAL_ID>",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "Shipping Region",
+              "field2": "Region"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        -48
+      ],
+      "id": "02d9475d-3cfa-4ffd-b4c1-9d494383c89e",
+      "name": "Merge Data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3c43de3e-8385-4768-9781-28912cd5fc99",
+              "name": "Total",
+              "type": "number",
+              "value": "={{ ($json.Quantity*$json.Price)+$json['Price (PHP)'] }}"
+            },
+            {
+              "id": "485e5097-2f7d-4777-b392-8359644f898d",
+              "name": "Shipping Fee",
+              "type": "number",
+              "value": "={{ $json['Price (PHP)'] }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        -48
+      ],
+      "id": "e10482e7-accd-40db-87d5-13ae59f96d28",
+      "name": "Calculate Total w/ Shipping Fee"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Last Order ID": {
+      "main": [
+        [
+          {
+            "node": "Generate new Order ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data from Order Form": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Get Product Price",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Shipping Fee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate new Order ID": {
+      "main": [
+        [
+          {
+            "node": "Add to Order Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Product Price": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Order Sheet": {
+      "main": [
+        [
+          {
+            "node": "Send to Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Shipping Fee": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Calculate Total w/ Shipping Fee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Total w/ Shipping Fee": {
+      "main": [
+        [
+          {
+            "node": "Get Last Order ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "id": "6Egf6rYdQA80Km5P",
+  "tags": []
+}
