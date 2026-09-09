@@ -62,9 +62,6 @@ Customer submits Google Form
 Get Data from Google Sheets Form Responses
         │
         ▼
-Generate Order ID
-        │
-        ▼
 Lookup Product Price
         │
         ▼
@@ -72,6 +69,9 @@ Lookup Shipping Fee
         │
         ▼
 Calculate Total
+        │
+        ▼
+Generate Order ID
         │
         ▼
 Add to Orders Sheet
@@ -98,13 +98,14 @@ Send Discord Notification
 
 ## 📸 Screenshots
 
-> TODO: Add screenshots here.
-
-* Google Form
 * n8n Workflow
-* Orders Sheet
-* Discord Notification
+![Order Helper n8n Workflow](./images/n8n-workflow.png)
 
+* INPUT: Order Form Snippet (Google Forms)
+  ![order form](./images/order-form.png)
+  
+* OUTPUT:  Discord Notification
+![discord notif](./images/discord-notif.png)
 
 
 ## 🚧 Current Limitations
