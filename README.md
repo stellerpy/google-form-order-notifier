@@ -1,4 +1,4 @@
-# 📦 Order Helper – Google Forms Order Automation
+# Order Notifier Bot
 
 
 
@@ -18,42 +18,43 @@ Instead of manually checking new orders, calculating totals, and creating order 
 >
 > 
 
-## 🚨 Problem
+## Problem
 
 Many small businesses sell through Facebook, Instagram, or TikTok and use Google Forms to collect orders.
 
-For every new order, they typically have to:
+For every new order, they typically have to manually:
 
 * Check for new form submissions
-* Create an Order ID manually
-* Calculate the order total
-* Determine the shipping fee
-* Update the order sheet
-* Notify themselves that a new order has arrived
+* Create an Order ID manually or don't create one at all
+* Calculate the order's total amount
+* Determine the shipping fee which differs per buyer's location
+* Update their order list database
 
 While each step is simple, doing it repeatedly becomes time-consuming and prone to mistakes.
 
 
 
-## 💡 Solution
+## Solution
 
-This automation streamlines the order intake process from the moment a customer submits a Google Form.
+This automation does all the manual steps automatically. 
 
-It automatically prepares the order, records it in Google Sheets, and instantly notifies the business owner through Discord.
+It streamlines the order intake process from the moment a customer submits a Google Form. 
 
-
-
-## ✨ Features
-
-* 🆔 Generates sequential Order IDs (`2026-00001`)
-* 💰 Calculates product total automatically
-* 🚚 Adds shipping fee based on the selected shipping area
-* 📄 Creates a complete order record in Google Sheets
-* 🔔 Sends an instant Discord notification for every new order
+It calculates the total amount (including the shipping fee), records every incoming order in a separate spreadsheet, then instantly notifies the business owner through Discord.
 
 
 
-## 🔄 Workflow
+## Features
+
+* Calculates order total automatically
+* Adds shipping fee based on the selected shipping area
+* Generates sequential Order IDs (e.g. `2026-00001`)
+* Creates a complete order record in Google Sheets
+* Sends an instant Discord notification for every new order
+
+
+
+## Workflow
 
 ```text
 Customer submits Google Form
@@ -81,7 +82,7 @@ Send Discord Notification
 ```
 
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Technology           | Purpose                                                      |
 | -------------------- | ------------------------------------------------------------ |
@@ -96,7 +97,7 @@ Send Discord Notification
 
 
 
-## 📸 Screenshots
+## Screenshots
 
 * n8n Workflow
 ![Order Helper n8n Workflow](./images/n8n-workflow.png)
@@ -108,7 +109,7 @@ Send Discord Notification
 ![discord notif](./images/discord-notif.png)
 
 
-## 🚧 Current Limitations
+## Current Limitations
 
 * Payment verification is still performed manually.
 * Designed for businesses with fixed product prices and predefined shipping fees.
@@ -117,22 +118,10 @@ Send Discord Notification
 
 
 
-## 📌 Future Improvements
+## Future Improvements
 
-* ClickUp or Trello integration (optional)
-* Real-time notification via Telegram Bot
+* ClickUp or Trello integration
+* Real-time notification via Telegram
 * Email confirmation to customers
 * PDF invoice generation
 * Analytics dashboard
-
-
-
-## 📖 Lessons Learned
-
-Building this project helped me gain hands-on experience with:
-
-* Workflow automation using n8n
-* API integrations
-* Business process automation
-* JavaScript for data transformation
-* Designing automations around real-world business workflows
